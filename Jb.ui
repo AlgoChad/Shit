@@ -23,7 +23,7 @@
    <string>MainWindow</string>
   </property>
   <property name="styleSheet">
-   <string notr="true"/>
+   <string notr="true">background-color: rgb(239, 237, 225);</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <widget class="QLabel" name="imgLabel">
