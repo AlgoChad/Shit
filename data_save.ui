@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>800</width>
-    <height>420</height>
+    <height>419</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -25,8 +25,8 @@
   <widget class="QTextEdit" name="textEdit_3">
    <property name="geometry">
     <rect>
-     <x>380</x>
-     <y>70</y>
+     <x>382</x>
+     <y>76</y>
      <width>236</width>
      <height>47</height>
     </rect>
@@ -44,8 +44,8 @@
   <widget class="QTextEdit" name="textEdit_2">
    <property name="geometry">
     <rect>
-     <x>138</x>
-     <y>124</y>
+     <x>140</x>
+     <y>130</y>
      <width>479</width>
      <height>48</height>
     </rect>
@@ -60,8 +60,8 @@
   <widget class="QTextEdit" name="textEdit_5">
    <property name="geometry">
     <rect>
-     <x>138</x>
-     <y>286</y>
+     <x>140</x>
+     <y>292</y>
      <width>479</width>
      <height>48</height>
     </rect>
@@ -136,8 +136,8 @@
   <widget class="QTextEdit" name="textEdit_4">
    <property name="geometry">
     <rect>
-     <x>138</x>
-     <y>232</y>
+     <x>140</x>
+     <y>238</y>
      <width>479</width>
      <height>48</height>
     </rect>
@@ -154,7 +154,7 @@
     <rect>
      <x>18</x>
      <y>76</y>
-     <width>91</width>
+     <width>121</width>
      <height>261</height>
     </rect>
    </property>
@@ -206,8 +206,8 @@
   <widget class="QComboBox" name="comboBox">
    <property name="geometry">
     <rect>
-     <x>138</x>
-     <y>208</y>
+     <x>140</x>
+     <y>214</y>
      <width>479</width>
      <height>18</height>
     </rect>
@@ -216,8 +216,8 @@
   <widget class="QDateEdit" name="dateEdit">
    <property name="geometry">
     <rect>
-     <x>138</x>
-     <y>178</y>
+     <x>140</x>
+     <y>184</y>
      <width>479</width>
      <height>18</height>
     </rect>
@@ -226,8 +226,8 @@
   <widget class="QTextEdit" name="textEdit">
    <property name="geometry">
     <rect>
-     <x>139</x>
-     <y>70</y>
+     <x>141</x>
+     <y>76</y>
      <width>235</width>
      <height>47</height>
     </rect>
