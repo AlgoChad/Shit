@@ -1,0 +1,11 @@
+<RCC>
+  <qresource prefix="capture">
+    <file>capture.png</file>
+  </qresource>
+  <qresource prefix="logo">
+    <file>awitbg.png</file>
+  </qresource>
+  <qresource prefix="browse">
+    <file>Browse.png</file>
+  </qresource>
+</RCC>
