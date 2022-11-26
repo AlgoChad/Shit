@@ -14,16 +14,13 @@
    </rect>
   </property>
   <property name="sizePolicy">
-   <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
     <horstretch>0</horstretch>
     <verstretch>0</verstretch>
    </sizepolicy>
   </property>
   <property name="windowTitle">
    <string>Capture and Analyze</string>
-  </property>
-  <property name="styleSheet">
-   <string notr="true">background-color: rgb(239, 237, 225);</string>
   </property>
   <widget class="QLabel" name="imgLabel">
    <property name="geometry">
@@ -53,17 +50,6 @@
      <height>51</height>
     </rect>
    </property>
-   <property name="font">
-    <font>
-     <family>Agency FB</family>
-     <pointsize>12</pointsize>
-     <weight>75</weight>
-     <bold>true</bold>
-    </font>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">background-color: rgb(255, 255, 255);</string>
-   </property>
    <property name="frameShape">
     <enum>QFrame::WinPanel</enum>
    </property>
@@ -78,9 +64,9 @@
    <property name="geometry">
     <rect>
      <x>620</x>
-     <y>30</y>
+     <y>40</y>
      <width>131</width>
-     <height>151</height>
+     <height>121</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -89,12 +75,6 @@
       <property name="enabled">
        <bool>true</bool>
       </property>
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
       <property name="mouseTracking">
        <bool>true</bool>
       </property>
@@ -103,10 +83,6 @@
       </property>
       <property name="autoFillBackground">
        <bool>false</bool>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">
-background-color: rgb(165, 191, 218);</string>
       </property>
       <property name="text">
        <string>Save</string>
@@ -123,12 +99,9 @@ background-color: rgb(165, 191, 218);</string>
      </widget>
     </item>
     <item>
-     <widget class="QPushButton" name="save_data_button_2">
-      <property name="enabled">
-       <bool>true</bool>
-      </property>
+     <widget class="QDialogButtonBox" name="dialogButtonBox">
       <property name="sizePolicy">
-       <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+       <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
         <horstretch>0</horstretch>
         <verstretch>0</verstretch>
        </sizepolicy>
@@ -136,27 +109,17 @@ background-color: rgb(165, 191, 218);</string>
       <property name="mouseTracking">
        <bool>true</bool>
       </property>
-      <property name="tabletTracking">
+      <property name="layoutDirection">
+       <enum>Qt::LeftToRight</enum>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
+      </property>
+      <property name="standardButtons">
+       <set>QDialogButtonBox::Close</set>
+      </property>
+      <property name="centerButtons">
        <bool>true</bool>
-      </property>
-      <property name="autoFillBackground">
-       <bool>false</bool>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">
-background-color: rgb(165, 191, 218);</string>
-      </property>
-      <property name="text">
-       <string>Save</string>
-      </property>
-      <property name="checkable">
-       <bool>false</bool>
-      </property>
-      <property name="default">
-       <bool>false</bool>
-      </property>
-      <property name="flat">
-       <bool>false</bool>
       </property>
      </widget>
     </item>
@@ -165,26 +128,15 @@ background-color: rgb(165, 191, 218);</string>
   <widget class="QWidget" name="verticalLayoutWidget">
    <property name="geometry">
     <rect>
-     <x>580</x>
-     <y>200</y>
-     <width>211</width>
-     <height>211</height>
+     <x>590</x>
+     <y>190</y>
+     <width>191</width>
+     <height>191</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout_3">
     <item>
      <widget class="QLabel" name="label_cataract">
-      <property name="font">
-       <font>
-        <family>Agency FB</family>
-        <pointsize>12</pointsize>
-        <weight>75</weight>
-        <bold>true</bold>
-       </font>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">background-color: rgb(255, 255, 255);</string>
-      </property>
       <property name="frameShape">
        <enum>QFrame::Box</enum>
       </property>
@@ -195,17 +147,6 @@ background-color: rgb(165, 191, 218);</string>
     </item>
     <item>
      <widget class="QLabel" name="label_cataract_type">
-      <property name="font">
-       <font>
-        <family>Agency FB</family>
-        <pointsize>12</pointsize>
-        <weight>75</weight>
-        <bold>true</bold>
-       </font>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">background-color: rgb(255, 255, 255);</string>
-      </property>
       <property name="frameShape">
        <enum>QFrame::Box</enum>
       </property>
@@ -216,17 +157,6 @@ background-color: rgb(165, 191, 218);</string>
     </item>
     <item>
      <widget class="QLabel" name="label_cataract_stage">
-      <property name="font">
-       <font>
-        <family>Agency FB</family>
-        <pointsize>12</pointsize>
-        <weight>75</weight>
-        <bold>true</bold>
-       </font>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">background-color: rgb(255, 255, 255);</string>
-      </property>
       <property name="frameShape">
        <enum>QFrame::Box</enum>
       </property>
@@ -239,5 +169,38 @@ background-color: rgb(165, 191, 218);</string>
   </widget>
  </widget>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>dialogButtonBox</sender>
+   <signal>accepted()</signal>
+   <receiver>Save</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>248</x>
+     <y>254</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>157</x>
+     <y>274</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>dialogButtonBox</sender>
+   <signal>rejected()</signal>
+   <receiver>Save</receiver>
+   <slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>316</x>
+     <y>260</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>286</x>
+     <y>274</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>
