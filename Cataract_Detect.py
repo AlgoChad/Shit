@@ -27,7 +27,7 @@ CNN_CATARACT_TYPES = "types.h5"
 CNN_CATARACT_STAGES = "stages.h5"
 
 #Database Paths
-PATIENTDDB = "Patiends.db"
+PATIENTDDB = "Patients.db"
 PATIENTDATADB = "Patient_data.db"
 
 
@@ -81,6 +81,7 @@ class AI(Convolutional_Neural_Networks, Haar_Cascade):
         
         return -1
         
+        
     def eye_detect(self, cascade, frame, detection):
         for (x, y, w, h) in cascade:
             if (w, h) > (120, 120):
@@ -92,8 +93,8 @@ class AI(Convolutional_Neural_Networks, Haar_Cascade):
     
 class Database():
     def __init__(self):
-        self.db_path_1 = "Patients.db"
-        self.db_path_2 = "Patient_data.db"
+        self.db_path_1 = PATIENTDDB
+        self.db_path_2 = PATIENTDATADB
         self.dbconnection_1 = sqlite3.connect(self.db_path_1)
         self.dbconnection_2 = sqlite3.connect(self.db_path_2)
     
@@ -102,36 +103,42 @@ class Database():
         query = """ CREATE TABLE IF NOT EXISTS "Users" (
                         "firstName"    TEXT,
                         "lastName"    TEXT,
-                        "age"    INTEGER,
+                        "age"    TEXT,
                         "dob"    TEXT,
+                        "gender" TEXT,
                         "email"    TEXT,
-                            "address"    TEXT
+                        "address"    TEXT
                         );  """
         dbconnection.execute(query)
         dbconnection.commit()
             
         
-    def prepareDBTables(self, dbconnection, tableName):
+    def prepareDBTables(self, dbconnection, table_name):
         query = """ CREATE TABLE IF NOT EXISTS "{0}" (
                         "image" BLOB,
                         "cataract" TEXT,
                         "type" TEXT,
                         "maturity" TEXT,
                         "description" TEXT
-                        );  """.format(tableName)
+                        );  """.format(table_name)
         dbconnection.execute(query)
         dbconnection.commit()
         
     
-    def insertRowInDB(self,rowData, connection):
-        queryStr = '''INSERT INTO Users ("firstName","lastName","age","dob","email","address") VALUES (?,?,?,?,?,?);'''
-        connection.execute(queryStr,rowData)
-        connection.commit()
+    def insert_into_list(self, patient):
+        query_string = '''INSERT INTO Users ("firstName","lastName","age","dob","gender","email","address") VALUES (?,?,?,?,?,?,?);'''
+        self.dbconnection_1.execute(query_string, patient)
+        self.dbconnection_1.commit()
         
+        
+    def insert_analysis(self, captured, analysis, table_name):
+        analysis.insert(0, sqlite3.Binary(captured.read()))
+        query_string = """INSERT INTO "{0}" ("image", "cataract", "type", "maturity") values (?,?,?,?)""".format(table_name)
+        self.dbconnection_2.execute(query_string, analysis)
+        self.dbconnection_2.commit()
             
         
 class Main(QMainWindow):
-    
     def __init__(self):
         super(Main, self).__init__()
         self.artificial_intelligence = AI()
@@ -186,11 +193,11 @@ class Main(QMainWindow):
             QtWidgets.QApplication.beep()
             frame = frame[80:400, 100:540] #80:400 - 140:650
             path = "temp_image_dir"
-            name = "tempfile{}.png".format(self._image_counter) 
+            name = "tempfile.png"
             cv.imwrite(os.path.join(path, name), frame)
-            self._image_counter += 1        
 
-        save_and_analyze = Save_analyze(os.path.join(path, name))
+        print(os.path.join(path, name))
+        save_and_analyze = save_analyze(os.path.join(path, name))
         save_and_analyze.exec()
     
     
@@ -200,13 +207,17 @@ class Main(QMainWindow):
 
 
 
-class Save_analyze(QDialog):
+class save_analyze(QDialog):
     def __init__(self, name):
-        super(Save_analyze, self).__init__()
+        super(save_analyze, self).__init__()
         loadUi("save_and_analyze.ui", self)
         self.artificial_intelligence = AI()
-        self.save_data_button.clicked.connect(self.save)
         self.loadImage(name)
+        self.analysis = [self.label_cataract.text(), 
+                         self.label_cataract_type.text(),
+                         self.label_cataract_stage.text()]
+        self.proceed_button.clicked.connect(self.save)
+        self.close_button.clicked.connect(lambda: self.close())
         
         
     def loadImage(self, name):
@@ -262,16 +273,40 @@ class Save_analyze(QDialog):
             
             
     def save(self):
-        save = save_client_data()
+        save = save_client_data(self.analysis)
         save.exec()
         
 
 
-class save_client_data(QDialog):
-    def __init__(self):
+class save_client_data(QDialog, Database):
+    def __init__(self, analysis):
         super(save_client_data, self).__init__()
+        Database.__init__(self)
         loadUi("data_save.ui", self)
+        self.analysis = analysis
+        self.save_data_button.clicked.connect(self.save)
+        self.save_cancel_button.clicked.connect(lambda: self.close())
         
+        
+    def save(self):
+        captured = open("temp_image_dir/tempfile0.png", "rb")
+        patient = [str(self.first_name.toPlainText()), 
+                   str(self.last_name.toPlainText()), 
+                   str(self.age.toPlainText()), 
+                   str(self.birthday_edit.date().toPyDate()), 
+                   str(self.gender.currentText()), 
+                   str(self.email.toPlainText()), 
+                   str(self.address.toPlainText())]
+        table_name = [str(self.first_name.toPlainText()), 
+                      str(self.last_name.toPlainText()), 
+                      str(self.age.toPlainText()), 
+                      str(self.birthday_edit.date().toPyDate())]
+        print(table_name)
+        self.prepareDBTableMain(self.dbconnection_1)
+        self.prepareDBTables(self.dbconnection_2, str(table_name))
+        self.insert_into_list(patient)
+        self.insert_analysis(captured, self.analysis, str(table_name))
+      
         
         
 class database_browser(QDialog, Database):
@@ -293,9 +328,8 @@ class database_browser(QDialog, Database):
                 fname = data[0]
                 lname = data[1]
                 age = data[2]
-                birdthday = data[3]
-                print(fname, lname, age, birdthday)
-                self.dbconnection_1.execute("DELETE FROM Users Where firstName=? and lastName=? and age=?", (fname, lname, age,))
+                birthday = data[3]
+                self.dbconnection_1.execute("DELETE FROM Users Where firstName=? and lastName=? and age=? and dob=?", (fname, lname, age, birthday,))
                 self.dbconnection_1.commit()
                 self.tableWidget.removeRow(self.tableWidget.currentRow())
 
