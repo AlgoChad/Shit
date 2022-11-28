@@ -2,7 +2,7 @@ import tensorflow as tf
 from PIL import Image
 import numpy as np
 import cv2 as cv
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtWidgets import QApplication, QDialog, QMainWindow
 from PyQt5.uic import loadUi
 from PyQt5.QtGui import *
@@ -289,7 +289,7 @@ class save_client_data(QDialog, Database):
         
         
     def save(self):
-        captured = open("temp_image_dir/tempfile0.png", "rb")
+        captured = open("temp_image_dir/tempfile.png", "rb")
         patient = [str(self.first_name.toPlainText()), 
                    str(self.last_name.toPlainText()), 
                    str(self.age.toPlainText()), 
@@ -317,6 +317,7 @@ class database_browser(QDialog, Database):
         self.prepareDBTableMain(self.dbconnection_1)
         self.showTableData(self.dbconnection_1)
         self.delete_data.clicked.connect(self.delete_item)
+        self.open_data.clicked.connect(self.open_user)
         
 
     def delete_item(self):
@@ -341,8 +342,52 @@ class database_browser(QDialog, Database):
             for column_number, column_data in enumerate(row_data):
                 item = str(column_data);
                 self.tableWidget.setItem(row_number, column_number, QtWidgets.QTableWidgetItem(item))
-    
 
+
+    def open_user(self):
+        content = "SELECT * FROM Users"
+        res = self.dbconnection_1.execute(content)
+        for row in enumerate(res):
+            if row[0] == self.tableWidget.currentRow():
+                data = row[1]
+                fname = data[0]
+                lname = data[1]
+                age = data[2]
+                birthday = data[3]
+        table_name = [str(fname), str(lname), str(age), str(birthday)]
+        user = cataract_browser(str(table_name))
+        user.exec()
+
+
+class cataract_browser(QDialog, Database):
+    def __init__(self, table_name):
+        super(cataract_browser, self).__init__()
+        Database.__init__(self)
+        loadUi("cataract_browser.ui", self)
+        self.showTableData(self.dbconnection_2, table_name)
+    
+    
+    def showTableData(self, connection, table_name):
+        result = connection.cursor().execute("""SELECT * FROM "{0}" """.format(table_name))
+        for row_number, row_data in enumerate(result):
+            self.tableWidget.insertRow(row_number)
+            for column_number, column_data in enumerate(row_data):
+                item = str(column_data);
+                if(column_number == 0):
+                    item = self.getImageLabel(column_data)
+                    self.tableWidget.setCellWidget(row_number,column_number,item)
+                else: 
+                    self.tableWidget.setItem(row_number,column_number,QtWidgets.QTableWidgetItem(item))
+        self.tableWidget.verticalHeader().setDefaultSectionSize(80)
+
+    def getImageLabel(self,image):
+        imageLabel = QtWidgets.QLabel(self.tableWidget)
+        imageLabel.setText("")
+        imageLabel.setScaledContents(True)
+        pixmap = QtGui.QPixmap()
+        pixmap.loadFromData(image,'png')
+        imageLabel.setPixmap(pixmap)
+        return imageLabel
 
 if __name__ == '__main__':
     App = QApplication(sys.argv)
