@@ -359,6 +359,7 @@ class database_browser(QDialog, Database):
         user.exec()
 
 
+
 class cataract_browser(QDialog, Database):
     def __init__(self, table_name):
         super(cataract_browser, self).__init__()
@@ -380,6 +381,7 @@ class cataract_browser(QDialog, Database):
                     self.tableWidget.setItem(row_number,column_number,QtWidgets.QTableWidgetItem(item))
         self.tableWidget.verticalHeader().setDefaultSectionSize(80)
 
+
     def getImageLabel(self,image):
         imageLabel = QtWidgets.QLabel(self.tableWidget)
         imageLabel.setText("")
@@ -388,6 +390,8 @@ class cataract_browser(QDialog, Database):
         pixmap.loadFromData(image,'png')
         imageLabel.setPixmap(pixmap)
         return imageLabel
+
+
 
 if __name__ == '__main__':
     App = QApplication(sys.argv)
