@@ -143,7 +143,7 @@ class Main(QMainWindow):
         super(Main, self).__init__()
         self.artificial_intelligence = AI()
         self._image_counter = 0
-        loadUi('Jb.ui', self)
+        loadUi('Mainwindow.ui', self)
         self.camera()
     
     
@@ -267,9 +267,9 @@ class save_analyze(QDialog):
     def cataract_stage(self):
         result = self.artificial_intelligence.cnn_detect(self.image, 1)
         if result == 0:
-            self.label_cataract_stage.setText("Maturity: Immature")
+            self.label_cataract_stage.setText("Stage: Immature")
         else:
-            self.label_cataract_stage.setText("Maturity: Mature")
+            self.label_cataract_stage.setText("Stage: Mature")
             
             
     def save(self):
