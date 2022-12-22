@@ -197,12 +197,30 @@ class Main(QMainWindow):
             cv.imwrite(os.path.join(path, name), frame)
 
         print(os.path.join(path, name))
-        save_and_analyze = save_analyze(os.path.join(path, name))
-        save_and_analyze.exec()
-    
+        choice = choices(path, name)
+        choice.exec()
     
     def browse(self):
-        browse = database_browser()
+        browse = database_browser(1)
+        browse.exec()
+
+
+
+class choices(QDialog):
+    def __init__(self, path, name):
+        super(choices, self).__init__()
+        loadUi("choice.ui")
+        self.path = path
+        self.name = name
+        self.browse_existing.clicked.connect(self.call_db_browser)
+        self.create_new.clicked.connect(self.new_user)
+    
+    def new_user(self):
+        save_and_analyze = save_analyze(os.path.join(self.path, self.name))
+        save_and_analyze.exec()
+        
+    def call_db_browser(self):
+        browse = database_browser(0)
         browse.exec()
 
 
@@ -310,10 +328,13 @@ class save_client_data(QDialog, Database):
         
         
 class database_browser(QDialog, Database):
-    def __init__(self):
+    def __init__(self, window):
         super(database_browser, self).__init__()
         Database.__init__(self)
-        loadUi("browser.ui", self)
+        if (window == 0):
+            loadUi("browser_choice.ui", self)
+        else:
+            loadUi("browser.ui", self)
         self.prepareDBTableMain(self.dbconnection_1)
         self.showTableData(self.dbconnection_1)
         self.delete_data.clicked.connect(self.delete_item)
