@@ -125,6 +125,12 @@ class Database():
         dbconnection.commit()
         
     
+    def delete_db_table(self, dbconnection, table_name):
+        query = """ DROP TABLE IF EXISTS "{0}" """.format(table_name)
+        dbconnection.execute(query)
+        dbconnection.commit()
+        
+    
     def insert_into_list(self, patient):
         query_string = '''INSERT INTO Users ("firstName","lastName","age","dob","gender","email","address") VALUES (?,?,?,?,?,?,?);'''
         self.dbconnection_1.execute(query_string, patient)
@@ -201,7 +207,7 @@ class Main(QMainWindow):
         choice.exec()
     
     def browse(self):
-        browse = database_browser(1)
+        browse = database_browser(1, None, None)
         browse.exec()
 
 
@@ -209,27 +215,32 @@ class Main(QMainWindow):
 class choices(QDialog):
     def __init__(self, path, name):
         super(choices, self).__init__()
-        loadUi("choice.ui")
+        loadUi("choice.ui", self)
         self.path = path
         self.name = name
         self.browse_existing.clicked.connect(self.call_db_browser)
         self.create_new.clicked.connect(self.new_user)
     
     def new_user(self):
-        save_and_analyze = save_analyze(os.path.join(self.path, self.name))
-        save_and_analyze.exec()
+        save = save_client_data(self.path, self.name)
+        save.exec()
+    
         
     def call_db_browser(self):
-        browse = database_browser(0)
+        browse = database_browser(0, self.path, self.name)
         browse.exec()
 
 
 
-class save_analyze(QDialog):
-    def __init__(self, name):
+class save_analyze(QDialog, Database):
+    def __init__(self, name, patient, table_name):
         super(save_analyze, self).__init__()
         loadUi("save_and_analyze.ui", self)
         self.artificial_intelligence = AI()
+        self.patient = patient
+        self.table_name = table_name
+        self.image_name = name
+        self.captured = open("temp_image_dir/tempfile.png", "rb")
         self.loadImage(name)
         self.analysis = [self.label_cataract.text(), 
                          self.label_cataract_type.text(),
@@ -291,54 +302,64 @@ class save_analyze(QDialog):
             
             
     def save(self):
-        save = save_client_data(self.analysis)
-        save.exec()
+        if self.patient is None:
+            self.prepareDBTableMain(self.dbconnection_1)
+            self.prepareDBTables(self.dbconnection_2, str(self.table_name))
+            self.insert_analysis(self.captured, self.analysis, str(self.table_name))
+        else:
+            self.prepareDBTableMain(self.dbconnection_1)
+            self.prepareDBTables(self.dbconnection_2, str(self.table_name))
+            self.insert_into_list(self.patient)
+            self.insert_analysis(self.captured, self.analysis, str(self.table_name))
         
+        self.close()
 
 
-class save_client_data(QDialog, Database):
-    def __init__(self, analysis):
+class save_client_data(QDialog):
+    def __init__(self, path, name):
         super(save_client_data, self).__init__()
         Database.__init__(self)
+        self.path = path
+        self.name = name
         loadUi("data_save.ui", self)
-        self.analysis = analysis
         self.save_data_button.clicked.connect(self.save)
         self.save_cancel_button.clicked.connect(lambda: self.close())
         
         
     def save(self):
-        captured = open("temp_image_dir/tempfile.png", "rb")
-        patient = [str(self.first_name.toPlainText()), 
+        self.captured = open("temp_image_dir/tempfile.png", "rb")
+        self.patient = [str(self.first_name.toPlainText()), 
                    str(self.last_name.toPlainText()), 
                    str(self.age.toPlainText()), 
                    str(self.birthday_edit.date().toPyDate()), 
                    str(self.gender.currentText()), 
                    str(self.email.toPlainText()), 
                    str(self.address.toPlainText())]
-        table_name = [str(self.first_name.toPlainText()), 
+        self.table_name = [str(self.first_name.toPlainText()), 
                       str(self.last_name.toPlainText()), 
                       str(self.age.toPlainText()), 
                       str(self.birthday_edit.date().toPyDate())]
-        print(table_name)
-        self.prepareDBTableMain(self.dbconnection_1)
-        self.prepareDBTables(self.dbconnection_2, str(table_name))
-        self.insert_into_list(patient)
-        self.insert_analysis(captured, self.analysis, str(table_name))
+        save_and_analyze = save_analyze(os.path.join(self.path, self.name), self.patient, self.table_name)
+        save_and_analyze.exec()
+        self.close()
       
         
         
 class database_browser(QDialog, Database):
-    def __init__(self, window):
+    def __init__(self, window, path, name):
         super(database_browser, self).__init__()
         Database.__init__(self)
+        self.name = name
+        self.path = path
         if (window == 0):
             loadUi("browser_choice.ui", self)
+            self.proceed.clicked.connect(self.proceed_save)
         else:
             loadUi("browser.ui", self)
+            self.delete_data.clicked.connect(self.delete_item)
+            self.open_data.clicked.connect(self.open_user)
         self.prepareDBTableMain(self.dbconnection_1)
         self.showTableData(self.dbconnection_1)
-        self.delete_data.clicked.connect(self.delete_item)
-        self.open_data.clicked.connect(self.open_user)
         
 
     def delete_item(self):
@@ -353,6 +374,7 @@ class database_browser(QDialog, Database):
                 birthday = data[3]
                 self.dbconnection_1.execute("DELETE FROM Users Where firstName=? and lastName=? and age=? and dob=?", (fname, lname, age, birthday,))
                 self.dbconnection_1.commit()
+                self.delete_db_table(self.dbconnection_2, str([fname, lname, age, birthday]))
                 self.tableWidget.removeRow(self.tableWidget.currentRow())
 
         
@@ -379,6 +401,20 @@ class database_browser(QDialog, Database):
         user = cataract_browser(str(table_name))
         user.exec()
 
+
+    def proceed_save(self, ):
+        content = "SELECT * FROM Users"
+        res = self.dbconnection_1.execute(content)
+        for row in enumerate(res):
+            if row[0] == self.tableWidget.currentRow():
+                data = row[1]
+                fname = data[0]
+                lname = data[1]
+                age = data[2]
+                birthday = data[3]
+        table_name = [str(fname), str(lname), str(age), str(birthday)]
+        save = save_analyze(os.path.join(self.path, self.name), None, str(table_name))
+        save.exec()
 
 
 class cataract_browser(QDialog, Database):

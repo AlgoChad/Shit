@@ -225,30 +225,6 @@
       </property>
      </widget>
     </item>
-    <item>
-     <widget class="QPushButton" name="edit_data">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="font">
-       <font>
-        <family>Agency FB</family>
-        <pointsize>12</pointsize>
-        <weight>75</weight>
-        <bold>true</bold>
-       </font>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">background-color: rgb(165, 191, 218);</string>
-      </property>
-      <property name="text">
-       <string>Edit Data</string>
-      </property>
-     </widget>
-    </item>
    </layout>
   </widget>
  </widget>
