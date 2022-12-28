@@ -184,7 +184,7 @@
 background-color: rgb(165, 191, 218);</string>
       </property>
       <property name="text">
-       <string>PROCEED</string>
+       <string>SAVE</string>
       </property>
       <property name="checkable">
        <bool>false</bool>
