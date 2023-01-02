@@ -25,7 +25,7 @@
   <property name="styleSheet">
    <string notr="true">background-color: rgb(239, 237, 225);</string>
   </property>
-  <widget class="QLabel" name="Description">
+  <widget class="QLabel" name="label_cataract_description">
    <property name="geometry">
     <rect>
      <x>10</x>

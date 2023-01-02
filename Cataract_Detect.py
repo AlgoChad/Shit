@@ -10,6 +10,7 @@ from PyQt5.QtCore import *
 import sqlite3
 import sys
 import os
+from automail import automail
 import image
 
 #Constant Values
@@ -132,14 +133,16 @@ class Database():
         
     
     def insert_into_list(self, patient):
-        query_string = '''INSERT INTO Users ("firstName","lastName","age","dob","gender","email","address") VALUES (?,?,?,?,?,?,?);'''
+        query_string = '''INSERT INTO Users ("firstName","lastName","age","dob","gender","email","address") 
+                            VALUES (?,?,?,?,?,?,?);'''
         self.dbconnection_1.execute(query_string, patient)
         self.dbconnection_1.commit()
         
         
     def insert_analysis(self, captured, analysis, table_name):
         analysis.insert(0, sqlite3.Binary(captured.read()))
-        query_string = """INSERT INTO "{0}" ("image", "cataract", "type", "maturity") values (?,?,?,?)""".format(table_name)
+        query_string = """INSERT INTO "{0}" ("image", "cataract", "type", "maturity", "descriotion") 
+                            values (?,?,?,?,?)""".format(table_name)
         self.dbconnection_2.execute(query_string, analysis)
         self.dbconnection_2.commit()
             
@@ -221,6 +224,7 @@ class choices(QDialog):
         self.browse_existing.clicked.connect(self.call_db_browser)
         self.create_new.clicked.connect(self.new_user)
     
+    
     def new_user(self):
         save = save_client_data(self.path, self.name)
         save.exec()
@@ -233,10 +237,11 @@ class choices(QDialog):
 
 
 class save_analyze(QDialog, Database):
-    def __init__(self, name, patient, table_name):
+    def __init__(self, name, patient, table_name, email):
         super(save_analyze, self).__init__()
         loadUi("save_and_analyze.ui", self)
         self.artificial_intelligence = AI()
+        self.email = email
         self.patient = patient
         self.table_name = table_name
         self.image_name = name
@@ -244,7 +249,8 @@ class save_analyze(QDialog, Database):
         self.loadImage(name)
         self.analysis = [self.label_cataract.text(), 
                          self.label_cataract_type.text(),
-                         self.label_cataract_stage.text()]
+                         self.label_cataract_stage.text(),
+                         self.label_cataract_description.text()]
         self.proceed_button.clicked.connect(self.save)
         self.close_button.clicked.connect(lambda: self.close())
         
@@ -274,43 +280,70 @@ class save_analyze(QDialog, Database):
         gray = cv.cvtColor(self.image, cv.COLOR_BGR2GRAY)
         result = self.artificial_intelligence.cataract_detect(gray)
         if result == 1:
-            self.cataract_type()
-            self.cataract_stage()
+            type = self.cataract_type()
+            stage = self.cataract_stage()
+            self.cataract_description(type, stage)
             self.label_cataract.setText("Cataract: Positive")
         else:
             self.label_cataract.setText("Cataract: Negative")
             
     
     def cataract_type(self):
+        type_list = ["Cortical Cataract",
+                     "Nuclear Sclerotic Cataract",
+                     "Posterior Subcapsular Cataract"]
         result = self.artificial_intelligence.cnn_detect(self.image, 0)
         if result == 0:
-            self.label_cataract_type.setText("Type: Cortical Cataract")
+            self.label_cataract_type.setText("Type: {0}". format(type_list[result]))
         elif result == 1:
-            self.label_cataract_type.setText("Type: Nuclear Sclerotic Cataract")
+            self.label_cataract_type.setText("Type: {0}". format(type_list[result]))
         elif result == 2:
-            self.label_cataract_type.setText("Type: Posterior Subcapsular Cataract")
+            self.label_cataract_type.setText("Type: {0}". format(type_list[result]))
         else:
             self.label_cataract_type.setText("Type: N/A")
-                    
+        
+        return result
         
     def cataract_stage(self):
+        stage_list = ["Immature",
+                      "Mature",
+                      "Hypermature"]
         result = self.artificial_intelligence.cnn_detect(self.image, 1)
         if result == 0:
-            self.label_cataract_stage.setText("Stage: Immature")
-        else:
-            self.label_cataract_stage.setText("Stage: Mature")
+            self.label_cataract_stage.setText("Stage: {0}".format(stage_list[result]))
+        elif result == 1:
+            self.label_cataract_stage.setText("Stage: {0}".format(stage_list[result]))
+        elif result == 2:
+            self.label_cataract_stage.setText("Stage: {0}".format(stage_list[result]))
             
+        return result
+            
+            
+    def cataract_description(self, type, stage):
+        stage_desc_list = ["Immature cataract: Proteins have started to cloud the lens, making it slightly opaque, especially in the center. At this point, your ophthalmologist would recommend new glasses, anti-glare lenses, and increased attention to the light, such as that needed to read correctly. Progression of an immature cataract can take up to several years.",
+                           "Mature cataract: The opaqueness has increased to such a point that it can appear milky and white, or amber in color. It has spread to the edges of the lens and has a considerable effect on vision. At this point, your ophthalmologist would ask you how your quality of life and daily activities are affected. If the cataract seriously affects your life, removal surgery may be recommended. ",
+                           "Hypermature cataract: The cataract has become very dense, impairing vision to a significant extent, and has hardened. At this point, it would impair vision to an advanced stage. It can be more difficult to remove. If not treated, hypermature cataracts can cause inflammation in the eye and/or increased pressure within the eye, which can cause glaucoma.  "]
+        
+        type_desc_list = ["Nuclear Sclerotic: These type of cataract form deep in the nucleus. The yellowing and hardening of the central portion of the crystalline lense occurs slowly over the years.",
+                          "Cortical: These cataracts have white opaque (spokes) that start to affect peripheral vision and works towards the center. Progression is variable with some progressing over years and others in months.",
+                          "Posterior Subcapsular: Progression is variable but tends to progress more rapidly than nuclear sclerotic cataracts. They affect diabetcis and people whoe use high dosage of steroids."]
+    
+        self.label_cataract_description.setText("Description: {0}".format("\n" + type_desc_list[type] + "\n" + stage_desc_list[stage]))
             
     def save(self):
+        mail = automail()
         if self.patient is None:
+            mail.send_mail('\n'.join(self.analysis), self.email)
             self.prepareDBTableMain(self.dbconnection_1)
             self.prepareDBTables(self.dbconnection_2, str(self.table_name))
             self.insert_analysis(self.captured, self.analysis, str(self.table_name))
         else:
+            mail.send_mail('\n'.join(self.analysis), self.patient[5])
             self.prepareDBTableMain(self.dbconnection_1)
             self.prepareDBTables(self.dbconnection_2, str(self.table_name))
             self.insert_into_list(self.patient)
             self.insert_analysis(self.captured, self.analysis, str(self.table_name))
+        
         
         self.close()
 
@@ -329,16 +362,16 @@ class save_client_data(QDialog):
     def save(self):
         self.captured = open("temp_image_dir/tempfile.png", "rb")
         self.patient = [str(self.first_name.toPlainText()), 
-                   str(self.last_name.toPlainText()), 
-                   str(self.age.toPlainText()), 
-                   str(self.birthday_edit.date().toPyDate()), 
-                   str(self.gender.currentText()), 
-                   str(self.email.toPlainText()), 
-                   str(self.address.toPlainText())]
+                        str(self.last_name.toPlainText()), 
+                        str(self.age.toPlainText()), 
+                        str(self.birthday_edit.date().toPyDate()), 
+                        str(self.gender.currentText()), 
+                        str(self.email.toPlainText()), 
+                        str(self.address.toPlainText())]
         self.table_name = [str(self.first_name.toPlainText()), 
-                      str(self.last_name.toPlainText()), 
-                      str(self.age.toPlainText()), 
-                      str(self.birthday_edit.date().toPyDate())]
+                            str(self.last_name.toPlainText()), 
+                            str(self.age.toPlainText()), 
+                            str(self.birthday_edit.date().toPyDate())]
         save_and_analyze = save_analyze(os.path.join(self.path, self.name), self.patient, self.table_name)
         save_and_analyze.exec()
         self.close()
@@ -367,11 +400,11 @@ class database_browser(QDialog, Database):
         res = self.dbconnection_1.execute(content)
         for row in enumerate(res):
             if row[0] == self.tableWidget.currentRow():
-                data = row[1]
-                fname = data[0]
-                lname = data[1]
-                age = data[2]
-                birthday = data[3]
+                data        =  row[1]
+                fname       = data[0]
+                lname       = data[1]
+                age         = data[2]
+                birthday    = data[3]
                 self.dbconnection_1.execute("DELETE FROM Users Where firstName=? and lastName=? and age=? and dob=?", (fname, lname, age, birthday,))
                 self.dbconnection_1.commit()
                 self.delete_db_table(self.dbconnection_2, str([fname, lname, age, birthday]))
@@ -392,11 +425,11 @@ class database_browser(QDialog, Database):
         res = self.dbconnection_1.execute(content)
         for row in enumerate(res):
             if row[0] == self.tableWidget.currentRow():
-                data = row[1]
-                fname = data[0]
-                lname = data[1]
-                age = data[2]
-                birthday = data[3]
+                data        =  row[1]
+                fname       = data[0]
+                lname       = data[1]
+                age         = data[2]
+                birthday    = data[3]
         table_name = [str(fname), str(lname), str(age), str(birthday)]
         user = cataract_browser(str(table_name))
         user.exec()
@@ -407,13 +440,14 @@ class database_browser(QDialog, Database):
         res = self.dbconnection_1.execute(content)
         for row in enumerate(res):
             if row[0] == self.tableWidget.currentRow():
-                data = row[1]
-                fname = data[0]
-                lname = data[1]
-                age = data[2]
-                birthday = data[3]
+                data        =  row[1]
+                fname       = data[0]
+                lname       = data[1]
+                age         = data[2]
+                birthday    = data[3]
         table_name = [str(fname), str(lname), str(age), str(birthday)]
-        save = save_analyze(os.path.join(self.path, self.name), None, str(table_name))
+        self.email = data[5]
+        save = save_analyze(os.path.join(self.path, self.name), None, str(table_name), self.email)
         save.exec()
 
 
